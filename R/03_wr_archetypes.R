@@ -2,12 +2,12 @@
 # 03_wr_archetypes.R  (Ashwin Subramaniam, building on Naveen Narayanaswami's
 # first deep threat and route runner drafts)
 # Wide receiver archetypes: Contested Catcher, Deep Threat, Route Runner.
-# Uses receivers with 100+ targets in a season, then compares EPA per target.
+# Uses WRs with 100+ targets in a season, then compares EPA per target.
 # =============================================================================
 
 MIN_TARGETS <- 100
 
-# Season-level NGS receiving profile, WRs only.
+# Season-level NGS receiving profile.
 wr_season <- ngs_receiving |>
   group_by(season, player_gsis_id, player_display_name, team_abbr) |>
   summarize(avg_separation         = mean(avg_separation, na.rm = TRUE),
@@ -18,43 +18,34 @@ wr_season <- ngs_receiving |>
             games_played           = n_distinct(week),
             .groups = "drop")
 
-# FIX: positions are now joined by player ID instead of name.
-add_position <- function(df) {
-  df |>
-    left_join(select(positions, season, gsis_id, position),
-              by = c("season", "player_gsis_id" = "gsis_id")) |>
-    filter(position == "WR")
-}
+# Qualifying pool: WRs with 100+ targets in the season.
+# FIX: positions are joined by player ID instead of name.
+wr_pool <- wr_season |>
+  left_join(select(positions, season, gsis_id, position),
+            by = c("season", "player_gsis_id" = "gsis_id")) |>
+  filter(position == "WR", szn_targets >= MIN_TARGETS)
 
-# ---- Contested Catcher: catches a lot despite little separation (top 5%) ----------
+# ---- Contested Catcher: catches a lot despite little separation ------------------
 
-contested_stats <- wr_season |>
-  filter(szn_targets >= MIN_TARGETS) |>
+contested_stats <- wr_pool |>
   mutate(z_separation = zscore(avg_separation),
          z_catch_percentage = zscore(avg_catch_percentage),
          z_contested_catcher = z_catch_percentage - z_separation)
 
 contested_catchers <- contested_stats |>
-  filter(z_contested_catcher >= quantile(z_contested_catcher, 0.95, na.rm = TRUE)) |>
-  add_position() |>
+  filter(z_contested_catcher >= quantile(z_contested_catcher, ARCHETYPE_CUTOFF, na.rm = TRUE)) |>
   arrange(desc(z_contested_catcher))
 
-# ---- Deep Threat: highest average intended air yards (top 10%) ---------------------
+# ---- Deep Threat: highest average intended air yards ---------------------------------
 
-# NOTE (open question): the cutoff is computed across all receivers (TEs, RBs,
-# low-volume players) before the 100-target and WR filters. See README.
-deep_threats <- wr_season |>
-  filter(avg_intended_air_yards >= quantile(wr_season$avg_intended_air_yards, ARCHETYPE_CUTOFF, na.rm = TRUE),
-         szn_targets >= MIN_TARGETS) |>
-  add_position() |>
+deep_threats <- wr_pool |>
+  filter(avg_intended_air_yards >= quantile(avg_intended_air_yards, ARCHETYPE_CUTOFF, na.rm = TRUE)) |>
   arrange(desc(avg_intended_air_yards))
 
-# ---- Route Runner: most separation at the catch point (top 15%) --------------------
+# ---- Route Runner: most separation at the catch point ---------------------------------
 
-route_runners <- wr_season |>
-  filter(avg_separation >= quantile(wr_season$avg_separation, 0.85, na.rm = TRUE),
-         szn_targets >= MIN_TARGETS) |>
-  add_position() |>
+route_runners <- wr_pool |>
+  filter(avg_separation >= quantile(avg_separation, ARCHETYPE_CUTOFF, na.rm = TRUE)) |>
   arrange(desc(avg_separation))
 
 # ---- EPA per target by archetype --------------------------------------------------

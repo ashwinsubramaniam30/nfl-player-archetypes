@@ -60,11 +60,9 @@ power_stats <- run_plays |>
   left_join(select(positions, season, gsis_id, position),
             by = c("season", "rusher_player_id" = "gsis_id"))
 
-# NOTE (open question): the 90th-percentile cutoff is computed across all
-# positions (QBs and WRs included), but only RBs are kept. See README.
 power_backs <- power_stats |>
-  filter(position == "RB",
-         u7_carry_rate >= quantile(power_stats$u7_carry_rate, ARCHETYPE_CUTOFF, na.rm = TRUE)) |>
+  filter(position == "RB") |>
+  filter(u7_carry_rate >= quantile(u7_carry_rate, ARCHETYPE_CUTOFF, na.rm = TRUE)) |>
   arrange(desc(u7_carry_rate))
 
 # ---- Receiving Back: high share of team pass attempts -----------------------------

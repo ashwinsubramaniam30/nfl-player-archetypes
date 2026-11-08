@@ -6,7 +6,7 @@
 
 ## How it works
 
-For each position we pick a few measurable traits, standardize them as z-scores across qualifying player-seasons, combine them into an archetype score, and tag the **top 10%** of player-seasons (top 5% or 15% where noted). A player can hold more than one archetype in the same season.
+For each position we pick a few measurable traits, standardize them as z-scores across qualifying player-seasons, combine them into an archetype score, and tag the **top 10%** of player-seasons. Every cutoff is calculated within the qualifying pool for that position (for example, WRs with 100+ targets), so each archetype covers the same share of its pool. A player can hold more than one archetype in the same season.
 
 ### Quarterbacks (8+ games, 288+ dropbacks where applicable)
 
@@ -29,9 +29,9 @@ For each position we pick a few measurable traits, standardize them as z-scores 
 
 | Archetype | Defined by |
 |---|---|
-| Contested Catcher | High catch rate despite low separation (top 5%) |
+| Contested Catcher | High catch rate despite low separation |
 | Deep Threat | Highest average intended air yards |
-| Route Runner | Most average separation (top 15%) |
+| Route Runner | Most average separation |
 
 ## Results so far
 
@@ -39,10 +39,10 @@ For each position we pick a few measurable traits, standardize them as z-scores 
 
 | Archetype | QB-seasons | Mean EPA | Median EPA |
 |---|---|---|---|
-| Improviser | 30 | 0.154 | 0.136 |
+| Improviser | 28 | 0.155 | 0.136 |
 | Pocket Passer | 27 | 0.086 | 0.110 |
 | Dual-Threat | 28 | 0.083 | 0.060 |
-| Gunslinger | 30 | 0.007 | 0.005 |
+| Gunslinger | 28 | 0.011 | -0.005 |
 
 ![QB EPA by archetype](output/figures/qb_epa_by_archetype.png)
 
@@ -50,7 +50,7 @@ For each position we pick a few measurable traits, standardize them as z-scores 
 
 | Archetype | RB-seasons | Mean EPA | Median EPA | Touch-weighted EPA |
 |---|---|---|---|---|
-| Power Back | 26 | -0.007 | -0.007 | 0.002 |
+| Power Back | 50 | -0.009 | -0.011 | 0.004 |
 | Elusive Back | 50 | -0.021 | -0.031 | -0.025 |
 | Receiving Back | 50 | -0.028 | -0.012 | -0.023 |
 
@@ -60,9 +60,9 @@ For each position we pick a few measurable traits, standardize them as z-scores 
 
 | Archetype | WR-seasons | Mean EPA | Median EPA | Target-weighted EPA |
 |---|---|---|---|---|
-| Contested Catcher | 31 | 0.497 | 0.525 | 0.493 |
-| Deep Threat | 50 | 0.293 | 0.320 | 0.299 |
-| Route Runner | 18 | 0.258 | 0.259 | 0.277 |
+| Contested Catcher | 23 | 0.460 | 0.462 | 0.465 |
+| Deep Threat | 23 | 0.359 | 0.370 | 0.363 |
+| Route Runner | 23 | 0.286 | 0.297 | 0.298 |
 
 ![WR EPA by archetype](output/figures/wr_epa_by_archetype.png)
 
@@ -98,15 +98,11 @@ run_all.R               runs everything, saves CSVs and charts
 output/                 results (CSV) and figures (PNG)
 ```
 
-## Open questions
+## Method notes
 
-Methodology choices still under discussion; each is marked `NOTE` in the code:
-
-1. **Next Gen Stats week 0 rows.** NGS includes a week 0 row per player that is the season total. Season averages currently include it alongside weekly rows, and `games_played` counts it as a game. Using the week 0 row directly would be cleaner.
-2. **Percentile cutoffs computed before position filters.** Power Backs and Deep Threats take the 90th percentile across all players (including QBs, TEs and low-volume players) before keeping only RBs or WRs, so fewer players qualify than the "top 10%" label suggests.
-3. **Different cutoffs by archetype.** Contested Catcher uses the top 5% and Route Runner the top 15%; everything else uses the top 10%.
-4. **"Power Back" uses 7 or fewer yards to go**, which captures many standard downs, not just short-yardage situations.
-5. **Gadget QBs** (the "Taysom Hill problem") can still qualify as Dual-Threat if they meet the passing threshold.
+- **Next Gen Stats:** the week 0 row (a season total) is dropped, so season averages and games played use weekly data only.
+- **Open question:** "Power Back" uses carries with 7 or fewer yards to go, which captures many standard downs, not just short-yardage situations.
+- **Open question:** gadget QBs (the "Taysom Hill problem") can still qualify as Dual-Threat if they meet the passing threshold.
 
 ## Next steps
 

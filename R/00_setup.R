@@ -12,7 +12,8 @@ library(ggplot2)
 # NOTE: the current season (2026) is partial, so its numbers will move week to week.
 SEASONS <- 2018:2026
 
-# Share of qualifying players tagged with each archetype (top 10% by default).
+# Every archetype tags the top 10% of qualifying player-seasons. The percentile
+# is always computed after filtering to the position and minimum-volume pool.
 ARCHETYPE_CUTOFF <- 0.90
 
 # ---- Helpers ----------------------------------------------------------------
@@ -65,12 +66,10 @@ id_crosswalk <- load_players() |>
   distinct(pfr_id, .keep_all = TRUE) |>
   select(gsis_id, pfr_id, display_name)
 
-ngs_passing   <- load_nextgen_stats(SEASONS, stat_type = "passing")
-ngs_receiving <- load_nextgen_stats(SEASONS, stat_type = "receiving")
+# Next Gen Stats include a week 0 row per player that is the season total.
+# We drop it so season averages and games_played use weekly rows only.
+ngs_passing   <- load_nextgen_stats(SEASONS, stat_type = "passing")   |> filter(week > 0)
+ngs_receiving <- load_nextgen_stats(SEASONS, stat_type = "receiving") |> filter(week > 0)
 pfr_pass      <- load_pfr_advstats(SEASONS, stat_type = "pass")
 pfr_rush      <- load_pfr_advstats(SEASONS, stat_type = "rush")
 player_stats  <- load_player_stats(SEASONS)
-
-# NOTE (open question): Next Gen Stats include a week 0 row per player that is
-# the season total. The season-level averages below include that row alongside
-# the weekly rows, and games_played counts it as a game. See README.
